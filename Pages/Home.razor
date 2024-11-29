@@ -1,0 +1,47 @@
+﻿@page "/"
+
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Home</PageTitle>
+
+<h1>Capture Signature</h1>
+
+<div class="signature-container">
+    <canvas id="signatureCanvas" width="600" height="400" style="border: 1px solid #000;"></canvas>
+</div>
+
+<div class="actions">
+    <button @onclick="ClearSignature">Clear</button>
+    <button @onclick="SaveSignature">Save</button>
+</div>
+
+<div class="preview">
+    @if (!string.IsNullOrEmpty(SignatureImageUrl))
+    {
+        <h1>Signature Preview:</h1>
+        <img src="@SignatureImageUrl" alt="Signature" />
+    }
+</div>
+
+@code {
+    private string? SignatureImageUrl;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("signature.startDrawing", "signatureCanvas");
+        }
+    }
+
+    private async Task ClearSignature()
+    {
+        await JSRuntime.InvokeVoidAsync("signature.clearCanvas", "signatureCanvas");
+    }
+
+    private async Task SaveSignature()
+    {
+        SignatureImageUrl = await JSRuntime.InvokeAsync<string>("signature.saveCanvas", "signatureCanvas");
+        StateHasChanged();
+    }
+}
